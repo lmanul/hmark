@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 "Runs a simple HTTP server to serve the benchmarked web page."
 
+import os
 import threading
 import sys
 
@@ -9,6 +10,7 @@ from http.server import SimpleHTTPRequestHandler
 
 HOST = "localhost"
 PORT = 8000
+PATH = "place_your_html_file_here/index.html"
 
 def run_http_server():
     "Runs the actual server."
@@ -17,6 +19,9 @@ def run_http_server():
 
 def run():
     "Runs the server used for the benchmark until it is interrupted."
+    if not os.path.exists(PATH):
+        print("Please copy the HTML to test into " + PATH)
+        sys.exit(0)
     try:
         http = threading.Thread(target=run_http_server)
         print("Serving at http://" + HOST + ":" + str(PORT))

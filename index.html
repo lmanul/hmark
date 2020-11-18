@@ -7,11 +7,16 @@
   <meta charset="utf-8">
 </head>
 
-<body>
-
-<button onclick="start();">Start</button>
+<body onload="start();">
 
 <script>
+
+let markup = '';
+let currentRenderCount = 0;
+let timings = [];
+
+let RENDER_COUNT = 20;
+let SETTLE_DOWN_TIME_MS = 500;
 
 function start() {
   console.log('Start');
@@ -21,13 +26,48 @@ function start() {
       onPageLoaded(xhr.response);
     }
   }
-  xhr.open('GET', '/tested/index.html', true);
+  xhr.open('GET', '/place_your_html_file_here/index.html', true);
   xhr.send(null);
 }
 
-function onPageLoaded(markup) {
-  console.log('Loaded ' + markup.length);
+function clear() {
+  document.body.innerHTML = '';
+}
+
+function render() {
   document.body.innerHTML = markup;
+}
+
+function finish() {
+  const sum = timings.reduce((a, b) => a + b, 0);
+  const average = sum / timings.length;
+  console.log('Rendered the page ' + timings.length + ' times. ' +
+              'Average render time: ' + average + ' ms.');
+}
+
+function clearAndRenderAgain() {
+  if (currentRenderCount < RENDER_COUNT) {
+    clear();
+    window.setTimeout(timedRender, SETTLE_DOWN_TIME_MS);
+  } else {
+    finish();
+  }
+}
+
+function timedRender() {
+  const before = new Date().getTime();
+  render(markup);
+  const after = new Date().getTime();
+  currentRenderCount++;
+  const elapsed = after - before;
+  console.log('' + currentRenderCount + ' rendered in ' + elapsed);
+  timings.push(elapsed);
+  window.setTimeout(clearAndRenderAgain, SETTLE_DOWN_TIME_MS);
+}
+
+function onPageLoaded(loadedMarkup) {
+  markup = loadedMarkup;
+  timedRender();
 }
 
 </script>
