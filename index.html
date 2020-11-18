@@ -41,13 +41,21 @@ function render() {
 function finish() {
   const sum = timings.reduce((a, b) => a + b, 0);
   const average = sum / timings.length;
-  console.log('Rendered the page ' + timings.length + ' times. ' +
-              'Average render time: ' + average + ' ms.');
+
+  // Standard deviation.
+  const squaredDiffs = timings.map((v) => (v - average) ** 2);
+  const squaredDiffsSum = squaredDiffs.reduce((a, b) => a + b, 0);
+  const stdDev = Math.sqrt(squaredDiffsSum / timings.length);
+
+  document.body.innerHTML = 'Rendered the page ' + timings.length + ' times. ' +
+      'Average render time: <b>' + average.toFixed(1) + ' ms.</b> ' +
+      'Standard deviation: <b>' + stdDev.toFixed(1) + ' ms.</b>';
 }
 
 function clearAndRenderAgain() {
+  clear();
   if (currentRenderCount < RENDER_COUNT) {
-    clear();
+    document.title = currentRenderCount;
     window.setTimeout(timedRender, SETTLE_DOWN_TIME_MS);
   } else {
     finish();
