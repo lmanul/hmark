@@ -1,0 +1,32 @@
+#!/usr/bin/python3
+"Runs a simple HTTP server to serve the benchmarked web page."
+
+import threading
+import sys
+
+from http.server import ThreadingHTTPServer
+from http.server import SimpleHTTPRequestHandler
+
+HOST = "localhost"
+PORT = 8000
+
+def run_http_server():
+    "Runs the actual server."
+    server = ThreadingHTTPServer((HOST, PORT), SimpleHTTPRequestHandler)
+    server.serve_forever()
+
+def run():
+    "Runs the server used for the benchmark until it is interrupted."
+    try:
+        http = threading.Thread(target=run_http_server)
+        print("Serving at http://" + HOST + ":" + str(PORT))
+        print("Hit Ctrl-C twice to stop.")
+        http.start()
+        http.join()
+
+    except KeyboardInterrupt:
+        print("Hit Crtl-C a second time to shut down.")
+        sys.exit(0)
+
+if __name__ == '__main__':
+    run()

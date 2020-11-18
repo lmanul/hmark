@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <title>Page tester</title>
+  <meta charset="utf-8">
+</head>
+
+<body>
+
+<button onclick="start();">Start</button>
+
+<script>
+
+function start() {
+  console.log('Start');
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState == XMLHttpRequest.DONE) {
+      onPageLoaded(xhr.response);
+    }
+  }
+  xhr.open('GET', '/tested/index.html', true);
+  xhr.send(null);
+}
+
+function onPageLoaded(markup) {
+  console.log('Loaded ' + markup.length);
+  document.body.innerHTML = markup;
+}
+
+</script>
+
+</body>
+
+</html>
