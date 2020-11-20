@@ -1,6 +1,7 @@
 let PATHS = [];
 let PAGES = [];
 let CURRENT_RENDER_COUNT = 0;
+let CURRENTLY_RENDERED_PAGE_INDEX = 0;
 let TIMINGS = [];
 let RENDER_COUNT = 0;
 let LOADED = 0;
@@ -13,6 +14,9 @@ function start(pathA, pathB, renderCount) {
   if (!!pathB) {
     PATHS.push(pathB);
     fetchOnePage(pathB, 1);
+  }
+  for (let i = 0; i < PATHS.length; i++) {
+    TIMINGS.push([]);
   }
 }
 
@@ -52,38 +56,42 @@ function renderSingleSeriesStats(timings) {
 
 function finish() {
   let contents = '';
-  if (TIMINGS.length === RENDER_COUNT) {
-     contents = renderSingleSeriesStats(TIMINGS);
-  } else {
-    contents = '<b>Comparison benchmarks not yet supported</b>';
-  }
+  contents = renderSingleSeriesStats(TIMINGS[0]);
   document.body.innerHTML = contents;
 }
 
 function clearAndRenderAgain() {
   clear();
+  CURRENTLY_RENDERED_PAGE_INDEX = 0;
   if (CURRENT_RENDER_COUNT < RENDER_COUNT) {
-    document.title = CURRENT_RENDER_COUNT;
-    window.setTimeout(timedRender, SETTLE_DOWN_TIME_MS);
+    window.setTimeout(singleRender, SETTLE_DOWN_TIME_MS);
   } else {
     finish();
   }
 }
 
-function timedRender() {
+function singleRender() {
+  document.title = '' + CURRENT_RENDER_COUNT + ' — ' + CURRENTLY_RENDERED_PAGE_INDEX;
   const before = new Date().getTime();
-  render(PAGES[0]);
+  render(PAGES[CURRENTLY_RENDERED_PAGE_INDEX]);
   const after = new Date().getTime();
-  CURRENT_RENDER_COUNT++;
+
   const elapsed = after - before;
-  TIMINGS.push(elapsed);
-  window.setTimeout(clearAndRenderAgain, SETTLE_DOWN_TIME_MS);
+  TIMINGS[CURRENTLY_RENDERED_PAGE_INDEX].push(elapsed);
+
+  CURRENTLY_RENDERED_PAGE_INDEX++;
+  if (CURRENTLY_RENDERED_PAGE_INDEX < PATHS.length) {
+    singleRender();
+  } else {
+    CURRENT_RENDER_COUNT++;
+    window.setTimeout(clearAndRenderAgain, SETTLE_DOWN_TIME_MS);
+  }
 }
 
 function onPageLoaded(loadedMarkup, index) {
   PAGES[index] = loadedMarkup;
   LOADED++;
   if (LOADED === PATHS.length) {
-    timedRender();
+    singleRender();
   }
 }
