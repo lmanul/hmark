@@ -1,13 +1,17 @@
+let PATHS = [];
 let PAGES = [];
 let CURRENT_RENDER_COUNT = 0;
 let TIMINGS = [];
 let RENDER_COUNT = 0;
+let LOADED = 0;
 const SETTLE_DOWN_TIME_MS = 100;
 
 function start(pathA, pathB, renderCount) {
   RENDER_COUNT = renderCount;
+  PATHS.push(pathA);
   fetchOnePage(pathA, 0);
   if (!!pathB) {
+    PATHS.push(pathB);
     fetchOnePage(pathB, 1);
   }
 }
@@ -78,5 +82,8 @@ function timedRender() {
 
 function onPageLoaded(loadedMarkup, index) {
   PAGES[index] = loadedMarkup;
-  timedRender();
+  LOADED++;
+  if (LOADED === PATHS.length) {
+    timedRender();
+  }
 }
