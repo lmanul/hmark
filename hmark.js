@@ -1,11 +1,11 @@
-function start() {
+function start(path) {
   var xhr = new XMLHttpRequest();
   xhr.onreadystatechange = function() {
     if (xhr.readyState == XMLHttpRequest.DONE) {
       onPageLoaded(xhr.response);
     }
   }
-  xhr.open('GET', '/place_your_html_file_here/index.html', true);
+  xhr.open('GET', path, true);
   xhr.send(null);
 }
 
