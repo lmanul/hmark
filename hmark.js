@@ -1,15 +1,22 @@
-let MARKUP = '';
+let PAGES = [];
 let CURRENT_RENDER_COUNT = 0;
 let TIMINGS = [];
 let RENDER_COUNT = 0;
 const SETTLE_DOWN_TIME_MS = 100;
 
-function start(path, renderCount) {
+function start(pathA, pathB, renderCount) {
   RENDER_COUNT = renderCount;
+  fetchOnePage(pathA, 0);
+  if (!!pathB) {
+    fetchOnePage(pathB, 1);
+  }
+}
+
+function fetchOnePage(path, index) {
   var xhr = new XMLHttpRequest();
   xhr.onreadystatechange = function() {
     if (xhr.readyState == XMLHttpRequest.DONE) {
-      onPageLoaded(xhr.response);
+      onPageLoaded(xhr.response, index);
     }
   }
   xhr.open('GET', path, true);
@@ -61,7 +68,7 @@ function clearAndRenderAgain() {
 
 function timedRender() {
   const before = new Date().getTime();
-  render(MARKUP);
+  render(PAGES[0]);
   const after = new Date().getTime();
   CURRENT_RENDER_COUNT++;
   const elapsed = after - before;
@@ -69,7 +76,7 @@ function timedRender() {
   window.setTimeout(clearAndRenderAgain, SETTLE_DOWN_TIME_MS);
 }
 
-function onPageLoaded(loadedMarkup) {
-  MARKUP = loadedMarkup;
+function onPageLoaded(loadedMarkup, index) {
+  PAGES[index] = loadedMarkup;
   timedRender();
 }
