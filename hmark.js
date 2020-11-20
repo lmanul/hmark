@@ -1,4 +1,11 @@
-function start(path) {
+let MARKUP = '';
+let CURRENT_RENDER_COUNT = 0;
+let TIMINGS = [];
+let RENDER_COUNT = 0;
+const SETTLE_DOWN_TIME_MS = 100;
+
+function start(path, renderCount) {
+  RENDER_COUNT = renderCount;
   var xhr = new XMLHttpRequest();
   xhr.onreadystatechange = function() {
     if (xhr.readyState == XMLHttpRequest.DONE) {
@@ -17,15 +24,18 @@ function render(markup) {
   document.body.innerHTML = markup;
 }
 
-function finish() {
-  const sum = TIMINGS.reduce((a, b) => a + b, 0);
-  const average = sum / TIMINGS.length;
+function renderSingleSeriesStats(timings) {
+  const sum = timings.reduce((a, b) => a + b, 0);
+  const average = sum / timings.length;
 
   // Standard deviation.
-  const squaredDiffs = TIMINGS.map((v) => (v - average) ** 2);
+  const squaredDiffs = timings.map((v) => (v - average) ** 2);
   const squaredDiffsSum = squaredDiffs.reduce((a, b) => a + b, 0);
-  const stdDev = Math.sqrt(squaredDiffsSum / TIMINGS.length);
+  const stdDev = Math.sqrt(squaredDiffsSum / timings.length);
+}
 
+function finish() {
+  const contents = renderSingleSeriesStats(TIMINGS);
   document.body.innerHTML = '<big>Rendered ' + TIMINGS.length + ' times. ' +
       'Average render time: <b>' + average.toFixed(1) + ' ms.</b> ' +
       'Standard deviation: <b>' + stdDev.toFixed(1) + ' ms.</b></big>';
