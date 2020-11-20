@@ -33,7 +33,7 @@ function renderSingleSeriesStats(timings) {
   const squaredDiffsSum = squaredDiffs.reduce((a, b) => a + b, 0);
   const stdDev = Math.sqrt(squaredDiffsSum / timings.length);
 
-  const rendered = '<big>Rendered ' + TIMINGS.length + ' times. ' +
+  const rendered = '<big>Rendered ' + timings.length + ' times. ' +
       'Average render time: <b>' + average.toFixed(1) + ' ms.</b> ' +
       'Standard deviation: <b>' + stdDev.toFixed(1) + ' ms.</b></big>';
   return rendered;
