@@ -11,72 +11,16 @@
 
 <script>
 
-let markup = '';
-let currentRenderCount = 0;
-let timings = [];
+let MARKUP = '';
+let CURRENT_RENDER_COUNT = 0;
+let TIMINGS = [];
 
-let RENDER_COUNT = 1000;
-let SETTLE_DOWN_TIME_MS = 100;
-
-function start() {
-  var xhr = new XMLHttpRequest();
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState == XMLHttpRequest.DONE) {
-      onPageLoaded(xhr.response);
-    }
-  }
-  xhr.open('GET', '/place_your_html_file_here/index.html', true);
-  xhr.send(null);
-}
-
-function clear() {
-  document.body.innerHTML = '';
-}
-
-function render() {
-  document.body.innerHTML = markup;
-}
-
-function finish() {
-  const sum = timings.reduce((a, b) => a + b, 0);
-  const average = sum / timings.length;
-
-  // Standard deviation.
-  const squaredDiffs = timings.map((v) => (v - average) ** 2);
-  const squaredDiffsSum = squaredDiffs.reduce((a, b) => a + b, 0);
-  const stdDev = Math.sqrt(squaredDiffsSum / timings.length);
-
-  document.body.innerHTML = '<big>Rendered ' + timings.length + ' times. ' +
-      'Average render time: <b>' + average.toFixed(1) + ' ms.</b> ' +
-      'Standard deviation: <b>' + stdDev.toFixed(1) + ' ms.</b></big>';
-}
-
-function clearAndRenderAgain() {
-  clear();
-  if (currentRenderCount < RENDER_COUNT) {
-    document.title = currentRenderCount;
-    window.setTimeout(timedRender, SETTLE_DOWN_TIME_MS);
-  } else {
-    finish();
-  }
-}
-
-function timedRender() {
-  const before = new Date().getTime();
-  render(markup);
-  const after = new Date().getTime();
-  currentRenderCount++;
-  const elapsed = after - before;
-  timings.push(elapsed);
-  window.setTimeout(clearAndRenderAgain, SETTLE_DOWN_TIME_MS);
-}
-
-function onPageLoaded(loadedMarkup) {
-  markup = loadedMarkup;
-  timedRender();
-}
+const RENDER_COUNT = 1000;
+const SETTLE_DOWN_TIME_MS = 100;
 
 </script>
+
+<script src="hmark.js"></script>
 
 </body>
 
