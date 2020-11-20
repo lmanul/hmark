@@ -32,13 +32,21 @@ function renderSingleSeriesStats(timings) {
   const squaredDiffs = timings.map((v) => (v - average) ** 2);
   const squaredDiffsSum = squaredDiffs.reduce((a, b) => a + b, 0);
   const stdDev = Math.sqrt(squaredDiffsSum / timings.length);
+
+  const rendered = '<big>Rendered ' + TIMINGS.length + ' times. ' +
+      'Average render time: <b>' + average.toFixed(1) + ' ms.</b> ' +
+      'Standard deviation: <b>' + stdDev.toFixed(1) + ' ms.</b></big>';
+  return rendered;
 }
 
 function finish() {
-  const contents = renderSingleSeriesStats(TIMINGS);
-  document.body.innerHTML = '<big>Rendered ' + TIMINGS.length + ' times. ' +
-      'Average render time: <b>' + average.toFixed(1) + ' ms.</b> ' +
-      'Standard deviation: <b>' + stdDev.toFixed(1) + ' ms.</b></big>';
+  let contents = '';
+  if (TIMINGS.length === RENDER_COUNT) {
+     contents = renderSingleSeriesStats(TIMINGS);
+  } else {
+    contents = '<b>Comparison benchmarks not yet supported</b>';
+  }
+  document.body.innerHTML = contents;
 }
 
 function clearAndRenderAgain() {
