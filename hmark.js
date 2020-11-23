@@ -1,12 +1,33 @@
+/** The paths (relative URLs) to test pages. */
 let PATHS = [];
+
+/** The actual markup of each test page. */
 let PAGES = [];
-let CURRENT_RENDER_COUNT = 0;
-let CURRENTLY_RENDERED_PAGE_INDEX = 0;
-let TIMINGS = [];
+
+/** The number of times we want to render each page. */
 let RENDER_COUNT = 0;
+
+/** The number of times we have rendered the full list of test pages. */
+let CURRENT_RENDER_COUNT = 0;
+
+/** The index of the page we are currently rendering. */
+let CURRENTLY_RENDERED_PAGE_INDEX = 0;
+
+/** Keeps track of measurements:
+ * [
+ *   [page_a_render_1, page_b_render_2, ...],
+ *   [page_b_render_1, page_b_render_2, ...],
+ * ]
+ */
+let TIMINGS = [];
+
+/** The number of pages that we have loaded so far. */
 let LOADED = 0;
+
+/** The number of milliseconds we wait in between two renders. */
 const SETTLE_DOWN_TIME_MS = 100;
 
+/** Entry point. Starts the process. */
 function start(pathA, pathB, renderCount) {
   RENDER_COUNT = renderCount;
   PATHS.push(pathA);
@@ -20,6 +41,7 @@ function start(pathA, pathB, renderCount) {
   }
 }
 
+/** Starts fetching the page at the given path.  */
 function fetchOnePage(path, index) {
   var xhr = new XMLHttpRequest();
   xhr.onreadystatechange = function() {
@@ -54,6 +76,7 @@ function renderSingleSeriesStats(timings) {
   return rendered;
 }
 
+/** Called when we are done and want to show the timings. */
 function finish() {
   let contents = '';
   contents = renderSingleSeriesStats(TIMINGS[0]);
@@ -90,6 +113,7 @@ function singleRender() {
   }
 }
 
+/** Callback for when a page finished loading. */
 function onPageLoaded(loadedMarkup, index) {
   PAGES[index] = loadedMarkup;
   LOADED++;
