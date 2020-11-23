@@ -10,7 +10,7 @@ from http.server import SimpleHTTPRequestHandler
 
 HOST = "localhost"
 PORT = 8000
-PATH = "place_your_html_file_here/index.html"
+FIRST_PATH = "place_your_html_file_here/a.html"
 
 def run_http_server():
     "Runs the actual server."
@@ -19,8 +19,8 @@ def run_http_server():
 
 def run():
     "Runs the server used for the benchmark until it is interrupted."
-    if not os.path.exists(PATH):
-        print("Please copy the HTML to test into " + PATH)
+    if not os.path.exists(FIRST_PATH):
+        print("Please copy the HTML to test into " + FIRST_PATH)
         sys.exit(0)
     try:
         http = threading.Thread(target=run_http_server)

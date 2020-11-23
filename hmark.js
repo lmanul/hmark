@@ -25,31 +25,34 @@ let TIMINGS = [];
 let LOADED = 0;
 
 /** The number of milliseconds we wait in between two renders. */
-const SETTLE_DOWN_TIME_MS = 100;
+const SETTLE_DOWN_TIME_MS = 200;
 
 /** Entry point. Starts the process. */
 function start(pathA, pathB, renderCount) {
+  const now = new Date().getTime();
   RENDER_COUNT = renderCount;
   PATHS.push(pathA);
-  fetchOnePage(pathA, 0);
+  fetchOnePage(pathA, 0, now);
   if (!!pathB) {
     PATHS.push(pathB);
-    fetchOnePage(pathB, 1);
+    fetchOnePage(pathB, 1, now);
   }
   for (let i = 0; i < PATHS.length; i++) {
     TIMINGS.push([]);
+    PAGES.push("");
   }
 }
 
 /** Starts fetching the page at the given path.  */
-function fetchOnePage(path, index) {
+function fetchOnePage(path, index, now) {
   var xhr = new XMLHttpRequest();
   xhr.onreadystatechange = function() {
     if (xhr.readyState == XMLHttpRequest.DONE) {
       onPageLoaded(xhr.response, index);
     }
   }
-  xhr.open('GET', path, true);
+  const url = path + '?nocache=' + now;
+  xhr.open('GET', url, true);
   xhr.send(null);
 }
 
@@ -79,14 +82,21 @@ function renderSingleSeriesStats(timings) {
 /** Called when we are done and want to show the timings. */
 function finish() {
   let contents = '';
-  contents = renderSingleSeriesStats(TIMINGS[0]);
+  for (let i = 0; i < PATHS.length; i++) {
+    contents += '<h1>Page ' + i + '</h1>';
+    contents += renderSingleSeriesStats(TIMINGS[i]);
+  }
   document.body.innerHTML = contents;
 }
 
 /** Clears the page and moves on to the next render. */
 function clearAndRenderAgain() {
   clear();
-  CURRENTLY_RENDERED_PAGE_INDEX = 0;
+  if (CURRENTLY_RENDERED_PAGE_INDEX >= PATHS.length) {
+    CURRENTLY_RENDERED_PAGE_INDEX = 0;
+    CURRENT_RENDER_COUNT++;
+  }
+
   if (CURRENT_RENDER_COUNT < RENDER_COUNT) {
     window.setTimeout(singleRender, SETTLE_DOWN_TIME_MS);
   } else {
@@ -103,14 +113,9 @@ function singleRender() {
 
   const elapsed = after - before;
   TIMINGS[CURRENTLY_RENDERED_PAGE_INDEX].push(elapsed);
-
   CURRENTLY_RENDERED_PAGE_INDEX++;
-  if (CURRENTLY_RENDERED_PAGE_INDEX < PATHS.length) {
-    singleRender();
-  } else {
-    CURRENT_RENDER_COUNT++;
-    window.setTimeout(clearAndRenderAgain, SETTLE_DOWN_TIME_MS);
-  }
+
+  window.setTimeout(clearAndRenderAgain, SETTLE_DOWN_TIME_MS);
 }
 
 /** Callback for when a page finished loading. */
