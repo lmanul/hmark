@@ -60,6 +60,7 @@ function finish() {
   document.body.innerHTML = contents;
 }
 
+/** Clears the page and moves on to the next render. */
 function clearAndRenderAgain() {
   clear();
   CURRENTLY_RENDERED_PAGE_INDEX = 0;
@@ -70,6 +71,7 @@ function clearAndRenderAgain() {
   }
 }
 
+/** Performs a single render, and remembers how long it took. */
 function singleRender() {
   document.title = '' + CURRENT_RENDER_COUNT + ' — ' + CURRENTLY_RENDERED_PAGE_INDEX;
   const before = new Date().getTime();
@@ -91,6 +93,7 @@ function singleRender() {
 function onPageLoaded(loadedMarkup, index) {
   PAGES[index] = loadedMarkup;
   LOADED++;
+  // If we have loaded all the test pages, we can start.
   if (LOADED === PATHS.length) {
     singleRender();
   }
