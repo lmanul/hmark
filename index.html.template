@@ -7,7 +7,7 @@
   <meta charset="utf-8">
 </head>
 
-<body onload="start({{HTML_FILES}}, 100);">
+<body onload="start({{HTML_FILES}}, 1000);">
 
 <script src="hmark.js"></script>
 
