@@ -2,7 +2,7 @@
 "Runs a simple HTTP server to serve the benchmarked web page."
 
 import os
-import threading
+import multiprocessing
 import sys
 
 from http.server import ThreadingHTTPServer
@@ -12,10 +12,16 @@ HOST = "localhost"
 PORT = 8000
 FIRST_PATH = "place_your_html_file_here/a.html"
 
+def cleanup():
+    os.system("rm index.html")
+
 def run_http_server():
     "Runs the actual server."
     server = ThreadingHTTPServer((HOST, PORT), SimpleHTTPRequestHandler)
     server.serve_forever()
+
+def prepare():
+    os.system("cp index.html.template index.html")
 
 def run():
     "Runs the server used for the benchmark until it is interrupted."
@@ -23,15 +29,20 @@ def run():
         print("Please copy the HTML to test into " + FIRST_PATH)
         sys.exit(0)
     try:
-        http = threading.Thread(target=run_http_server)
+        http = multiprocessing.Process(target=run_http_server)
         print("Serving at http://" + HOST + ":" + str(PORT))
-        print("Hit Ctrl-C twice to stop.")
+        print("Hit Ctrl-C to stop.")
         http.start()
         http.join()
 
     except KeyboardInterrupt:
-        print("Hit Crtl-C a second time to shut down.")
+        print("Stopping...")
+        http.terminate()
         sys.exit(0)
 
+    finally:
+        cleanup()
+
 if __name__ == '__main__':
+    prepare()
     run()
