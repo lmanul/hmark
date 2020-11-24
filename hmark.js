@@ -82,7 +82,12 @@ function renderSingleSeriesStats(timings) {
 function finish() {
   let contents = '';
   for (let i = 0; i < PATHS.length; i++) {
-    contents += '<h1>Page ' + i + '</h1>';
+    let filename = PATHS[i];
+    let dir = filename.indexOf('/');
+    if (dir != -1) {
+      filename = filename.substring(dir + 1);
+    }
+    contents += '<h1>' + filename + '</h1>';
     contents += renderSingleSeriesStats(TIMINGS[i]);
   }
   document.body.innerHTML = contents;
