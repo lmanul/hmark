@@ -10,7 +10,7 @@ from http.server import SimpleHTTPRequestHandler
 
 HOST = "localhost"
 PORT = 8000
-FIRST_PATH = "place_your_html_file_here/a.html"
+TEST_FOLDER = "place_your_html_files_here"
 
 def cleanup():
     os.system("rm index.html")
@@ -25,8 +25,9 @@ def prepare():
 
 def run():
     "Runs the server used for the benchmark until it is interrupted."
-    if not os.path.exists(FIRST_PATH):
-        print("Please copy the HTML to test into " + FIRST_PATH)
+    htmls = [f for f in TEST_FOLDER if f.endswith(".html")]
+    if len(htmls) == 0:
+        print("Please copy the pages to test into " + TEST_FOLDER)
         sys.exit(0)
     try:
         http = multiprocessing.Process(target=run_http_server)
