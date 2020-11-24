@@ -21,14 +21,20 @@ def run_http_server():
     server.serve_forever()
 
 def prepare():
-    os.system("cp index.html.template index.html")
+    htmls = [os.path.join(TEST_FOLDER, f) for f in os.listdir(TEST_FOLDER) \
+             if f.endswith(".html")]
+    if len(htmls) == 0:
+        print("Please copy the pages to test into '" + TEST_FOLDER + "'")
+        sys.exit(0)
+
+    with open("index.html.template") as f:
+        template = f.read()
+        output = template.replace("{{HTML_FILES}}", str(htmls))
+        with open("index.html", "w") as g:
+            g.write(output)
 
 def run():
     "Runs the server used for the benchmark until it is interrupted."
-    htmls = [f for f in TEST_FOLDER if f.endswith(".html")]
-    if len(htmls) == 0:
-        print("Please copy the pages to test into " + TEST_FOLDER)
-        sys.exit(0)
     try:
         http = multiprocessing.Process(target=run_http_server)
         print("Serving at http://" + HOST + ":" + str(PORT))

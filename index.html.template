@@ -7,8 +7,7 @@
   <meta charset="utf-8">
 </head>
 
-<body onload="start('/place_your_html_file_here/a.html',
-                    '/place_your_html_file_here/b.html', 1000);">
+<body onload="start({{HTML_FILES}}, 1000);">
 
 <script src="hmark.js"></script>
 
