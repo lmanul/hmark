@@ -22,6 +22,9 @@ let CURRENT_RENDER_COUNT = 0;
 /** The index of the page we are currently rendering. */
 let CURRENTLY_RENDERED_PAGE_INDEX = 0;
 
+/** The ID we use for the repeating interval, useful for stopping it. */
+let INTERVAL_ID = 0;
+
 /** Keeps track of measurements:
  * [
  *   [page_a_render_1, page_b_render_2, ...],
@@ -81,8 +84,6 @@ function renderSingleSeriesStats(timings) {
   const squaredDiffsSum = squaredDiffs.reduce((a, b) => a + b, 0);
   const stdDev = Math.sqrt(squaredDiffsSum / timings.length);
 
-  console.log(bellCurvify(timings));
-
   const rendered = '<big>Rendered ' + timings.length + ' times. ' +
       'Average render time: <b>' + average.toFixed(1) + ' ms.</b> ' +
       'Standard deviation: <b>' + stdDev.toFixed(1) + ' ms.</b></big>';
@@ -118,6 +119,7 @@ function getFileName(path) {
 
 /** Called when we are done and want to show the timings. */
 function finish() {
+  clear();
   let chartjs = document.createElement('script');
   chartjs.setAttribute('src', CHARTJS);
   chartjs.onload = drawChart;
@@ -148,6 +150,7 @@ function drawChart() {
     data.push({
       data: bellCurvify(series, min, max),
       label: getFileName(PATHS[i]),
+
       borderColor: COLORS[i % COLORS.length],
       fill: false
     });
@@ -158,7 +161,6 @@ function drawChart() {
     labels.push('' + i);
   }
   document.body.appendChild(canvas);
-  console.log(data);
   new Chart(context, {
     type: 'line',
     data: {
@@ -169,19 +171,10 @@ function drawChart() {
   });
 }
 
-/** Clears the page and moves on to the next render. */
-function clearAndRenderAgain() {
-  clear();
-  if (CURRENTLY_RENDERED_PAGE_INDEX >= PATHS.length) {
-    CURRENTLY_RENDERED_PAGE_INDEX = 0;
-    CURRENT_RENDER_COUNT++;
-  }
 
-  if (CURRENT_RENDER_COUNT < RENDER_COUNT) {
-    window.setTimeout(singleRender, SETTLE_DOWN_TIME_MS);
-  } else {
-    finish();
-  }
+function clearAndSingleRender() {
+  clear();
+  window.setTimeout(singleRender, SETTLE_DOWN_TIME_MS);
 }
 
 /** Performs a single render, and remembers how long it took. */
@@ -195,7 +188,20 @@ function singleRender() {
   TIMINGS[CURRENTLY_RENDERED_PAGE_INDEX].push(elapsed);
   CURRENTLY_RENDERED_PAGE_INDEX++;
 
-  window.setTimeout(clearAndRenderAgain, SETTLE_DOWN_TIME_MS);
+  if (CURRENT_RENDER_COUNT >= RENDER_COUNT) {
+    window.clearInterval(INTERVAL_ID);
+    window.setTimeout(finish, 2 * SETTLE_DOWN_TIME_MS);
+  } else {
+    if (CURRENTLY_RENDERED_PAGE_INDEX >= PATHS.length) {
+      CURRENTLY_RENDERED_PAGE_INDEX = 0;
+      CURRENT_RENDER_COUNT++;
+    }
+  }
+}
+
+function benchmark() {
+  // We wait 1x SETTLE_DOWN_TIME after clearing, and 1x after rendering.
+  INTERVAL_ID = window.setInterval(clearAndSingleRender, 2 * SETTLE_DOWN_TIME_MS);
 }
 
 /** Callback for when a page finished loading. */
@@ -204,6 +210,6 @@ function onPageLoaded(loadedMarkup, index) {
   LOADED++;
   // If we have loaded all the test pages, we can start.
   if (LOADED === PATHS.length) {
-    singleRender();
+    benchmark();
   }
 }
