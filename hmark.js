@@ -1,5 +1,12 @@
 const CHARTJS = 'https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js';
 
+const COLORS = [
+  '#007eca',  // blue
+  '#c00000',  // red
+  '#ffec00',  // yellow
+  '#00ab0b',  // green
+];
+
 /** The paths (relative URLs) to test pages. */
 let PATHS = [];
 
@@ -141,6 +148,7 @@ function drawChart() {
     data.push({
       data: bellCurvify(series, min, max),
       label: getFileName(PATHS[i]),
+      borderColor: COLORS[i % COLORS.length],
       fill: false
     });
   }
