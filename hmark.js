@@ -28,15 +28,14 @@ let LOADED = 0;
 const SETTLE_DOWN_TIME_MS = 200;
 
 /** Entry point. Starts the process. */
-function start(pathA, pathB, renderCount) {
+function start(paths, renderCount) {
   const now = new Date().getTime();
   RENDER_COUNT = renderCount;
-  PATHS.push(pathA);
-  fetchOnePage(pathA, 0, now);
-  if (!!pathB) {
-    PATHS.push(pathB);
-    fetchOnePage(pathB, 1, now);
+  PATHS = paths
+  for (let i = 0; i < PATHS.length; i++) {
+    fetchOnePage(PATHS[i], i, now);
   }
+
   for (let i = 0; i < PATHS.length; i++) {
     TIMINGS.push([]);
     PAGES.push("");
