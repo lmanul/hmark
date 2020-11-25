@@ -39,6 +39,10 @@ let LOADED = 0;
 /** The number of milliseconds we wait in between two renders. */
 const SETTLE_DOWN_TIME_MS = 200;
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////// Preparation /////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 /** Entry point. Starts the process. */
 function start(paths, renderCount) {
   const now = new Date().getTime();
@@ -67,54 +71,60 @@ function fetchOnePage(path, index, now) {
   xhr.send(null);
 }
 
+/** Callback for when a page finished loading. */
+function onPageLoaded(loadedMarkup, index) {
+  PAGES[index] = loadedMarkup;
+  LOADED++;
+  // If we have loaded all the test pages, we can start.
+  if (LOADED === PATHS.length) {
+    benchmark();
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////// Benchmarking /////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+function benchmark() {
+  // We wait 1x SETTLE_DOWN_TIME after clearing, and 1x after rendering.
+  INTERVAL_ID = window.setInterval(
+      clearAndSingleRender, 2 * SETTLE_DOWN_TIME_MS);
+}
+
+function clearAndSingleRender() {
+  clear();
+  window.setTimeout(singleRender, SETTLE_DOWN_TIME_MS);
+}
+
+/** Performs a single render, and remembers how long it took. */
+function singleRender() {
+  document.title = '' + CURRENT_RENDER_COUNT +
+      ' — ' + CURRENTLY_RENDERED_PAGE_INDEX;
+  const before = new Date().getTime();
+  render(PAGES[CURRENTLY_RENDERED_PAGE_INDEX]);
+  const after = new Date().getTime();
+
+  const elapsed = after - before;
+  TIMINGS[CURRENTLY_RENDERED_PAGE_INDEX].push(elapsed);
+  CURRENTLY_RENDERED_PAGE_INDEX++;
+
+  if (CURRENT_RENDER_COUNT >= RENDER_COUNT) {
+    window.clearInterval(INTERVAL_ID);
+    window.setTimeout(finish, 2 * SETTLE_DOWN_TIME_MS);
+  } else {
+    if (CURRENTLY_RENDERED_PAGE_INDEX >= PATHS.length) {
+      CURRENTLY_RENDERED_PAGE_INDEX = 0;
+      CURRENT_RENDER_COUNT++;
+    }
+  }
+}
+
 function clear() {
   document.body.innerHTML = '';
 }
 
 function render(markup) {
   document.body.innerHTML = markup;
-}
-
-function renderSingleSeriesStats(timings) {
-  const sum = timings.reduce((a, b) => a + b, 0);
-  const average = sum / timings.length;
-
-  // Standard deviation.
-  const squaredDiffs = timings.map((v) => (v - average) ** 2);
-  const squaredDiffsSum = squaredDiffs.reduce((a, b) => a + b, 0);
-  const stdDev = Math.sqrt(squaredDiffsSum / timings.length);
-
-  const rendered = '<big>Rendered ' + timings.length + ' times. ' +
-      'Average render time: <b>' + average.toFixed(1) + ' ms.</b> ' +
-      'Standard deviation: <b>' + stdDev.toFixed(1) + ' ms.</b></big>';
-  return rendered;
-}
-
-function bellCurvify(series, min, max) {
-  // Construct an object to track how many times a given timing was measured.
-  let bell = {};
-  for (let i = min; i <= max; i++) {
-    bell[i] = 0;
-  }
-  for (let i = 0; i < series.length; i++) {
-    bell[series[i]] += 1;
-  }
-
-  let outSeries = [];
-  // Now make this into an array.
-  for (let i = min; i <= max; i++) {
-    outSeries.push(bell[i]);
-  }
-  return outSeries;
-}
-
-function getFileName(path) {
-  let filename = path;
-  let dir = filename.indexOf('/');
-  if (dir != -1) {
-    filename = filename.substring(dir + 1);
-  }
-  return filename;
 }
 
 /** Called when we are done and want to show the timings. */
@@ -124,15 +134,12 @@ function finish() {
   chartjs.setAttribute('src', CHARTJS);
   chartjs.onload = drawChart;
   document.body.appendChild(chartjs);
-  let contents = '';
-  for (let i = 0; i < PATHS.length; i++) {
-    contents += '<h1>' + getFileName(PATHS[i]) + '</h1>';
-    contents += renderSingleSeriesStats(TIMINGS[i]);
-  }
-  const contentsEl = document.createElement('div');
-  contentsEl.innerHTML = contents;
-  document.body.appendChild(contentsEl);
+  renderTextStats();
 }
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////// Display / graphing //////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 function drawChart() {
   const canvas = document.createElement('canvas');
@@ -171,45 +178,55 @@ function drawChart() {
   });
 }
 
+function renderSingleSeriesStats(timings) {
+  const sum = timings.reduce((a, b) => a + b, 0);
+  const average = sum / timings.length;
 
-function clearAndSingleRender() {
-  clear();
-  window.setTimeout(singleRender, SETTLE_DOWN_TIME_MS);
+  // Standard deviation.
+  const squaredDiffs = timings.map((v) => (v - average) ** 2);
+  const squaredDiffsSum = squaredDiffs.reduce((a, b) => a + b, 0);
+  const stdDev = Math.sqrt(squaredDiffsSum / timings.length);
+
+  const rendered = '<big>Rendered ' + timings.length + ' times. ' +
+      'Average render time: <b>' + average.toFixed(1) + ' ms.</b> ' +
+      'Standard deviation: <b>' + stdDev.toFixed(1) + ' ms.</b></big>';
+  return rendered;
 }
 
-/** Performs a single render, and remembers how long it took. */
-function singleRender() {
-  document.title = '' + CURRENT_RENDER_COUNT + ' — ' + CURRENTLY_RENDERED_PAGE_INDEX;
-  const before = new Date().getTime();
-  render(PAGES[CURRENTLY_RENDERED_PAGE_INDEX]);
-  const after = new Date().getTime();
-
-  const elapsed = after - before;
-  TIMINGS[CURRENTLY_RENDERED_PAGE_INDEX].push(elapsed);
-  CURRENTLY_RENDERED_PAGE_INDEX++;
-
-  if (CURRENT_RENDER_COUNT >= RENDER_COUNT) {
-    window.clearInterval(INTERVAL_ID);
-    window.setTimeout(finish, 2 * SETTLE_DOWN_TIME_MS);
-  } else {
-    if (CURRENTLY_RENDERED_PAGE_INDEX >= PATHS.length) {
-      CURRENTLY_RENDERED_PAGE_INDEX = 0;
-      CURRENT_RENDER_COUNT++;
-    }
+function renderTextStats() {
+  let contents = '';
+  for (let i = 0; i < PATHS.length; i++) {
+    contents += '<h1>' + getFileName(PATHS[i]) + '</h1>';
+    contents += renderSingleSeriesStats(TIMINGS[i]);
   }
+  const contentsEl = document.createElement('div');
+  contentsEl.innerHTML = contents;
+  document.body.appendChild(contentsEl);
 }
 
-function benchmark() {
-  // We wait 1x SETTLE_DOWN_TIME after clearing, and 1x after rendering.
-  INTERVAL_ID = window.setInterval(clearAndSingleRender, 2 * SETTLE_DOWN_TIME_MS);
-}
-
-/** Callback for when a page finished loading. */
-function onPageLoaded(loadedMarkup, index) {
-  PAGES[index] = loadedMarkup;
-  LOADED++;
-  // If we have loaded all the test pages, we can start.
-  if (LOADED === PATHS.length) {
-    benchmark();
+function bellCurvify(series, min, max) {
+  // Construct an object to track how many times a given timing was measured.
+  let bell = {};
+  for (let i = min; i <= max; i++) {
+    bell[i] = 0;
   }
+  for (let i = 0; i < series.length; i++) {
+    bell[series[i]] += 1;
+  }
+
+  let outSeries = [];
+  // Now make this into an array.
+  for (let i = min; i <= max; i++) {
+    outSeries.push(bell[i]);
+  }
+  return outSeries;
+}
+
+function getFileName(path) {
+  let filename = path;
+  let dir = filename.indexOf('/');
+  if (dir != -1) {
+    filename = filename.substring(dir + 1);
+  }
+  return filename;
 }
