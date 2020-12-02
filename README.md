@@ -1,5 +1,5 @@
 # hmark
-Simple benchmarking tool for HTML
+Simple benchmarking tool for HTML rendering
 
 * Copy the HTML files you want to test under `place_your_html_files_here`
 * In a terminal, do `./run`
