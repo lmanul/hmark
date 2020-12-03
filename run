@@ -8,7 +8,7 @@ import sys
 from http.server import ThreadingHTTPServer
 from http.server import SimpleHTTPRequestHandler
 
-HOST = "localhost"
+HOST = ""
 PORT = 8000
 TEST_FOLDER = "place_your_html_files_here"
 
@@ -37,7 +37,10 @@ def run():
     "Runs the server used for the benchmark until it is interrupted."
     try:
         http = multiprocessing.Process(target=run_http_server)
-        print("Serving at http://" + HOST + ":" + str(PORT))
+        displayed_host = HOST
+        if not displayed_host:
+            displayed_host = "localhost"
+        print("Serving at http://" + displayed_host + ":" + str(PORT))
         print("Hit Ctrl-C to stop.")
         http.start()
         http.join()
